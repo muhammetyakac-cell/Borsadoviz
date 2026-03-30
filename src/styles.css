@@ -9,23 +9,26 @@
 
 body {
   margin: 0;
-  min-height: 100vh;
+  min-height: 100dvh;
   padding: .75rem;
   background: #06080f;
   display: flex;
   justify-content: center;
-  overflow-y: auto;
+  align-items: stretch;
 }
 
 .watch-shell {
   width: min(100%, 360px);
+  min-height: calc(100dvh - 1.5rem);
+  max-height: calc(100dvh - 1.5rem);
   background: #111827;
   border: 1px solid #2a3347;
   border-radius: 18px;
   padding: .8rem;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: .7rem;
-  margin: auto 0;
+  overflow: hidden;
 }
 
 h1, h2, p { margin: 0; }
@@ -33,7 +36,8 @@ h1 { font-size: 1rem; }
 h2 { font-size: .9rem; color: #cdd6f4; }
 
 .watch-form {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: .55rem;
 }
 
@@ -66,14 +70,16 @@ button:disabled {
 }
 
 .answer {
+  flex: 1;
+  min-height: 0;
   background: #0b1220;
   border: 1px solid #2f3d5a;
   border-radius: 12px;
   padding: .6rem;
   display: grid;
   gap: .35rem;
-  max-height: 50vh;
-  overflow: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .answer p {

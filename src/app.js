@@ -3,28 +3,21 @@ import { createRoot } from 'https://esm.sh/react-dom@18.3.1/client';
 import htm from 'https://esm.sh/htm@3.1.1';
 
 const html = htm.bind(React.createElement);
-const STORAGE_KEY = 'gemini-watch-api-key';
 const MODEL = 'gemini-2.5-flash';
-const DEFAULT_API_KEY = globalThis.DEFAULT_API_KEY || '';
+const DEFAULT_API_KEY = globalThis.DEFAULT_API_KEY || globalThis?.process?.env?.DEFAULT_API_KEY || '';
 
 function App() {
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem(STORAGE_KEY) || DEFAULT_API_KEY);
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('Yanıt burada görünecek.');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const canAsk = useMemo(() => apiKey.trim() && question.trim() && !loading, [apiKey, question, loading]);
-
-  const saveKey = (value) => {
-    setApiKey(value);
-    localStorage.setItem(STORAGE_KEY, value);
-  };
+  const canAsk = useMemo(() => Boolean(DEFAULT_API_KEY.trim()) && question.trim() && !loading, [question, loading]);
 
   const askGemini = async (event) => {
     event.preventDefault();
     const safeQuestion = question.trim();
-    const safeKey = apiKey.trim();
+    const safeKey = DEFAULT_API_KEY.trim();
 
     if (!safeKey || !safeQuestion || loading) return;
 
@@ -72,17 +65,6 @@ function App() {
 
       <form className="watch-form" onSubmit=${askGemini}>
         <label>
-          API Key
-          <input
-            type="password"
-            value=${apiKey}
-            onInput=${(e) => saveKey(e.target.value)}
-            placeholder="AIza..."
-            autoComplete="off"
-          />
-        </label>
-
-        <label>
           Sorun
           <textarea
             rows="4"
@@ -95,6 +77,9 @@ function App() {
         <button type="submit" disabled=${!canAsk}>${loading ? 'Soruluyor...' : 'Gönder'}</button>
       </form>
 
+      ${!DEFAULT_API_KEY.trim()
+        ? html`<p className="error">DEFAULT_API_KEY bulunamadı. Vercel ortam değişkenini client tarafına aktar.</p>`
+        : null}
       ${error ? html`<p className="error">${error}</p>` : null}
 
       <section className="answer">
