@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'https://esm.sh/react@18.3.1';
+import React, { useEffect, useMemo, useRef, useState } from 'https://esm.sh/react@18.3.1';
 import { createRoot } from 'https://esm.sh/react-dom@18.3.1/client';
 import htm from 'https://esm.sh/htm@3.1.1';
 
@@ -10,10 +10,11 @@ const QUESTION_DRAFT_KEY = 'gemini-watch-question-draft';
 function App() {
   const [apiKey, setApiKey] = useState(FALLBACK_API_KEY);
   const [configError, setConfigError] = useState('');
-  const [question, setQuestion] = useState(() => localStorage.getItem(QUESTION_DRAFT_KEY) || '');
+  const [questionDraft, setQuestionDraft] = useState(() => localStorage.getItem(QUESTION_DRAFT_KEY) || '');
   const [answer, setAnswer] = useState('Yanıt burada görünecek.');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const questionRef = useRef(null);
 
   useEffect(() => {
     let mounted = true;
@@ -49,14 +50,14 @@ function App() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(QUESTION_DRAFT_KEY, question);
-  }, [question]);
+    localStorage.setItem(QUESTION_DRAFT_KEY, questionDraft);
+  }, [questionDraft]);
 
-  const canAsk = useMemo(() => Boolean(apiKey.trim()) && question.trim() && !loading, [apiKey, question, loading]);
+  const canAsk = useMemo(() => Boolean(apiKey.trim()) && questionDraft.trim() && !loading, [apiKey, questionDraft, loading]);
 
   const askGemini = async (event) => {
     event.preventDefault();
-    const safeQuestion = question.trim();
+    const safeQuestion = questionRef.current?.value?.trim() || '';
     const safeKey = apiKey.trim();
 
     if (!safeKey || !safeQuestion || loading) return;
@@ -107,9 +108,10 @@ function App() {
         <label>
           Sorun
           <textarea
+            ref=${questionRef}
             rows="4"
-            value=${question}
-            onChange=${(e) => setQuestion(e.target.value)}
+            defaultValue=${questionDraft}
+            onInput=${(e) => setQuestionDraft(e.target.value)}
             placeholder="Kısa bir soru yaz..."
           ></textarea>
         </label>
