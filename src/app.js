@@ -5,7 +5,7 @@ import htm from 'https://esm.sh/htm@3.1.1';
 const html = htm.bind(React.createElement);
 const STORAGE_KEY = 'gemini-watch-api-key';
 const MODEL = 'gemini-2.5-flash';
-const DEFAULT_API_KEY = 'AIzaSyA4b-q7qY7VieOerF2XGcpDLQVzI8mAfZY';
+const DEFAULT_API_KEY = globalThis.DEFAULT_API_KEY || '';
 
 function App() {
   const [apiKey, setApiKey] = useState(() => localStorage.getItem(STORAGE_KEY) || DEFAULT_API_KEY);
@@ -41,7 +41,7 @@ function App() {
             contents: [{ parts: [{ text: safeQuestion }] }],
             generationConfig: {
               temperature: 0.5,
-              maxOutputTokens: 220
+              maxOutputTokens: 1024
             }
           })
         }
