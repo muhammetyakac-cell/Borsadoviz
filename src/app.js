@@ -4,7 +4,7 @@ import htm from 'https://esm.sh/htm@3.1.1';
 
 const html = htm.bind(React.createElement);
 const STORAGE_KEY = 'gemini-watch-api-key';
-const MODEL = 'gemini-2.0-flash';
+const MODEL = 'gemini-2.5-flash';
 const DEFAULT_API_KEY = 'AIzaSyA4b-q7qY7VieOerF2XGcpDLQVzI8mAfZY';
 
 function App() {
