@@ -1,23 +1,58 @@
-import React, { useMemo, useState } from 'https://esm.sh/react@18.3.1';
+import React, { useEffect, useMemo, useState } from 'https://esm.sh/react@18.3.1';
 import { createRoot } from 'https://esm.sh/react-dom@18.3.1/client';
 import htm from 'https://esm.sh/htm@3.1.1';
 
 const html = htm.bind(React.createElement);
 const MODEL = 'gemini-2.5-flash';
-const DEFAULT_API_KEY = globalThis.DEFAULT_API_KEY || globalThis?.process?.env?.DEFAULT_API_KEY || '';
+const FALLBACK_API_KEY = globalThis.DEFAULT_API_KEY || '';
 
 function App() {
+  const [apiKey, setApiKey] = useState(FALLBACK_API_KEY);
+  const [configError, setConfigError] = useState('');
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('Yanıt burada görünecek.');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const canAsk = useMemo(() => Boolean(DEFAULT_API_KEY.trim()) && question.trim() && !loading, [question, loading]);
+  useEffect(() => {
+    let mounted = true;
+
+    const loadApiKey = async () => {
+      if (FALLBACK_API_KEY.trim()) return;
+
+      try {
+        const response = await fetch('/api/config', { cache: 'no-store' });
+        const payload = await response.json();
+        const runtimeKey = payload?.defaultApiKey?.trim();
+
+        if (!response.ok || !runtimeKey) {
+          throw new Error(payload?.error || 'DEFAULT_API_KEY bulunamadı.');
+        }
+
+        if (mounted) {
+          setApiKey(runtimeKey);
+          setConfigError('');
+        }
+      } catch (requestError) {
+        if (mounted) {
+          setConfigError(requestError.message || 'DEFAULT_API_KEY yüklenemedi.');
+        }
+      }
+    };
+
+    loadApiKey();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const canAsk = useMemo(() => Boolean(apiKey.trim()) && question.trim() && !loading, [apiKey, question, loading]);
 
   const askGemini = async (event) => {
     event.preventDefault();
     const safeQuestion = question.trim();
-    const safeKey = DEFAULT_API_KEY.trim();
+    const safeKey = apiKey.trim();
 
     if (!safeKey || !safeQuestion || loading) return;
 
@@ -77,9 +112,7 @@ function App() {
         <button type="submit" disabled=${!canAsk}>${loading ? 'Soruluyor...' : 'Gönder'}</button>
       </form>
 
-      ${!DEFAULT_API_KEY.trim()
-        ? html`<p className="error">DEFAULT_API_KEY bulunamadı. Vercel ortam değişkenini client tarafına aktar.</p>`
-        : null}
+      ${configError ? html`<p className="error">${configError}</p>` : null}
       ${error ? html`<p className="error">${error}</p>` : null}
 
       <section className="answer">
