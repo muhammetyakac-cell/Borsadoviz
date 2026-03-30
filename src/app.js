@@ -5,11 +5,12 @@ import htm from 'https://esm.sh/htm@3.1.1';
 const html = htm.bind(React.createElement);
 const MODEL = 'gemini-2.5-flash';
 const FALLBACK_API_KEY = globalThis.DEFAULT_API_KEY || '';
+const QUESTION_DRAFT_KEY = 'gemini-watch-question-draft';
 
 function App() {
   const [apiKey, setApiKey] = useState(FALLBACK_API_KEY);
   const [configError, setConfigError] = useState('');
-  const [question, setQuestion] = useState('');
+  const [question, setQuestion] = useState(() => localStorage.getItem(QUESTION_DRAFT_KEY) || '');
   const [answer, setAnswer] = useState('Yanıt burada görünecek.');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -46,6 +47,10 @@ function App() {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem(QUESTION_DRAFT_KEY, question);
+  }, [question]);
 
   const canAsk = useMemo(() => Boolean(apiKey.trim()) && question.trim() && !loading, [apiKey, question, loading]);
 
@@ -104,7 +109,7 @@ function App() {
           <textarea
             rows="4"
             value=${question}
-            onInput=${(e) => setQuestion(e.target.value)}
+            onChange=${(e) => setQuestion(e.target.value)}
             placeholder="Kısa bir soru yaz..."
           ></textarea>
         </label>
